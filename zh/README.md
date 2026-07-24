@@ -1,12 +1,14 @@
-**繁體中文** | **[English](../en/README.md)**
+**[English](../README.md)** | **繁體中文**
 
 # Harness for Builders：讓任何 AI agent 可靠地幫你把專案做完
 
-> By [你的名字 / 連結]
+> By [Ryan Lee](https://github.com/RyanLeeYi)
 >
 > **你可以把整份文件丟給任何 AI,它就會帶你把 harness 建起來。**
 >
-> **v1.0** · 最後更新:YYYY-MM-DD · [Changelog](../CHANGELOG.md)
+> **v1.0** · 最後更新:2026-07-24 · [Changelog](../CHANGELOG.md)
+
+> 💡 **形態受 [Vault for Founders](https://github.com/cwlin0131/Vault-for-Founders)(作者 CW Lin)啟發** —— 借用它「文件丟給任何 AI 就能自我建置」的做法,套用到 *agent harness* 而非創辦人知識庫。底層方法改編自 [Learn Harness Engineering](https://walkinglabs.github.io/learn-harness-engineering/zh-TW/projects/)。
 
 ---
 
