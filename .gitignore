@@ -1,0 +1,26 @@
+# 這份 .gitignore 是給「用 Harness for Builders 建起來的專案」參考的預設。
+# 框架 repo 本身很乾淨,主要是提醒使用者:harness 的執行期產物不要進版控。
+
+# agent action trace（L3,若有啟用 hook）
+.harness/
+
+# 環境與密鑰
+.env
+.env.local
+*.key
+*.pem
+
+# 依賴與建置產物
+node_modules/
+__pycache__/
+.venv/
+venv/
+dist/
+build/
+*.log
+
+# OS / 編輯器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
