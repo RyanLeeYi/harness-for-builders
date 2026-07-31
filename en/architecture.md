@@ -42,6 +42,8 @@ AI agents have a structural tendency: when "passing verification" conflicts with
 Freezing acceptance cuts off that shortcut: **the goal is defined and signed off by the requester before work starts, and the implementer has no authority to change it.** Finding a gap in acceptance is normal — but you handle it by "adding an entry and getting sign-off," not "loosening it in place." This guarantees the definition of "done" is never set by "the party that wants to claim it's done."
 
 > Advanced: if the platform supports hooks, you can make "editing existing acceptance" an automatic block (DENY), turning the freeze from a rule into a mechanism.
+>
+> If you build one, key the check on **the file being protected**, not on a tool type. A failure mode observed in practice: the rule only asked "is this an edit operation?", so a full-file overwrite or a shell script rewriting the same JSON slipped past both guards while the log still showed everything as fine. The other half matters just as much — a guard that catches too much pushes people onto unguarded detours, so the test should be "was this value changed?" rather than "does this text mention the field?"
 
 ---
 
