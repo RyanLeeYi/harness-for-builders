@@ -55,7 +55,7 @@ As you delegate more work to AI (writing features, fixing bugs, refactoring), it
 ### Key Terms
 
 - **Harness**: a set of files in the repo that tell the agent how to run, what to do, and whether it's done. Not framework code — a working environment.
-- **feature_list.json**: the state machine for scope and acceptance. One entry per feature, status is only `failing` / `passing`, and flipping to passing always requires evidence.
+- **feature_list.json**: the state machine for scope and acceptance. One entry per feature, status is only `failing` / `passing`, flipping to passing always requires evidence, and dependencies between features are declared via `prerequisites` — undeclared is treated as unknown, not as "no dependency."
 - **acceptance**: "how to verify it's done." Written before work starts, signed off, then **frozen** — the single most important word in the harness.
 - **session**: one continuous stretch of dev work. The agent's context resets, so each session ends with a handoff.
 
@@ -94,6 +94,7 @@ The harness nails these down with **files**, instead of reminding via prompt eve
  │   └─ feature_list.json .... the state machine for scope and acceptance
  │                            ★ acceptance frozen after sign-off, before work
  │                            ★ no evidence, no flipping to passing
+ │                            ★ prerequisites declared; undeclared ≠ no dependency
  │
  ├─ L2 ── first session that ends unfinished ──────────────────────
  │   ├─ session-handoff.md ... where we left off (overwrite, don't append)

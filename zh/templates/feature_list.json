@@ -4,6 +4,7 @@
       "id": "F1",
       "name": "<功能名>",
       "acceptance": "<怎麼驗證:跑什麼、看到什麼才算過。動工前寫好、需求方簽核後凍結>",
+      "prerequisites": [],
       "status": "failing",
       "evidence": null
     },
@@ -11,6 +12,7 @@
       "id": "F2",
       "name": "<功能名>",
       "acceptance": "<Given/When/Then 或可執行的驗收指令>",
+      "prerequisites": ["F1"],
       "status": "failing",
       "evidence": null
     }

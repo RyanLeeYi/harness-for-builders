@@ -49,9 +49,13 @@
 
 需求有模糊空間的 feature,先寫 PRD(`templates/PRD.md` → `docs/prd/<feature>.md`),把 Given/When/Then、介面契約、邊界情況定清楚,再轉成 acceptance。
 
+同一步也要把 feature 之間的相依寫進 `prerequisites`:哪些 feature 必須先 passing,這條才做得下去或驗證得了。沒有相依就填空陣列,不要留空 —— 沒申報的欄位要當成「未申報」處理,不能拿來判斷能不能平行(見 [architecture.md](architecture.md))。
+
 **凍結**:acceptance 由需求方簽核後,動工中實作者不得偷改。發現缺漏 → 新增條目、標 failing、回簽核,不動既有條目。
 
 ⚠️ **要討論,不要猜**:acceptance 寫歪 = harness 失效。agent 不確定「怎樣算過」時要停下來問,不要自己編一個寬鬆標準。
+
+💡 **工作跨 3 條以上 feature、或跨多個面向(前端、後端、資料)**:動工前先切 envelope 再談個別 slice(slice 就是 feature,不是新 ID)——先簽核 envelope 的 `outcome`/`constraints`/`non_goals`,再逐條核准 slice。細節與 JSON 範例見 [architecture.md](architecture.md)。
 
 ---
 

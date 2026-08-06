@@ -74,6 +74,65 @@ AI agent 有一個結構性傾向:當「通過驗收」和「達成目標」衝�
 
 ---
 
+## 為什麼 feature 要申報 prerequisites
+
+`feature_list.json` 裡每個 feature 都可以有 `prerequisites`:一個 feature id 陣列,列出「必須先 passing,這條才做得下去或驗證得了」的其他 feature。沒有相依就是空陣列。
+
+申報這件事不是流程儀式,是讓 agent(或人)答得出兩個問題:**接下來做哪個?哪兩條能平行?** 沒有這個欄位,順序只能從 id 大小猜 —— 但 id 順序不等於相依順序,F3 先建檔不代表它不依賴 F5。
+
+平行的判準是三個條件同時成立,缺一個就不准平行:
+
+- 不互為 `prerequisites`
+- 動到的檔案沒有交集
+- 依賴的資源(資料庫 schema、外部服務、共用狀態)沒有交集
+
+**Fail-closed**:沒有 `prerequisites` 欄位的舊條目,要當成「未申報」處理,不能當成「沒有相依」直接拿來排序或放行平行。這跟「沒有證據不等於通過」是同一個原則 —— 缺欄位是缺資訊,不是預設安全。
+
+若平台支援,可以加工具面檢查:`prerequisites` 參照的 id 必須存在、不得指向自己、不得形成循環;feature 要標 `passing` 前,列出的 `prerequisites` 必須全部已經 `passing`。
+
+---
+
+## 為什麼大工作要先切 envelope 再談 slice
+
+在規格還沒動工前切,代價很低;動工後、acceptance 已經凍結才發現要拆,代價很高 —— 拆分要走「取代」(`superseded_by`)流程,比在規劃期先切貴得多。這是 envelope + slice 存在的理由。
+
+適用門檻:一件工作預估跨三條以上 feature,或跨多個面向(前端、後端、資料)。小工作不建 envelope,單一 feature 就夠。
+
+envelope 不是第二套 ID,**slice 就是 feature**。它是掛在一組 feature 上的共用約束層:
+
+- `outcome`:整個 envelope 做完後,外部看得到的改變
+- `constraints`:所有 slice 共用的技術、介面、相容性約束
+- `non_goals`:整個 envelope 明確不做的事
+
+簽核後,`constraints` 與 `non_goals` 跟 acceptance 同級凍結,實作者不得修改。
+
+流程上,**先簽核 envelope,再簽核 slice**,而且只審「下一個可執行的 slice」—— 不必一次把所有 slice 談完。還沒輪到的 slice 只要先有三個欄位:穩定的 `id`、`outcome`、`prerequisites`。這三個缺一個就是阻斷項,不能用「之後再補」帶過 —— 少了 `prerequisites` 就沒辦法判斷它能不能跟別的 slice 平行。
+
+schema 上,`features` 陣列維持平坦,不要巢狀化 —— 巢狀會讓所有讀 `feature_list.json` 的工具跟著改。envelope 只是額外的頂層陣列,每個 feature 用 `envelope` 欄位指回它所屬的 envelope id(不屬於任何 envelope 就留 `null`):
+
+```json
+{
+  "envelopes": [
+    {
+      "id": "E1",
+      "outcome": "<整個 envelope 做完後,外部看得到的改變>",
+      "constraints": ["<所有 slice 共用的技術/介面/相容性約束>"],
+      "non_goals": ["<整個 envelope 明確不做的事>"],
+      "signed_off": "<簽核日期,簽核後 constraints 與 non_goals 凍結>"
+    }
+  ],
+  "features": [
+    {
+      "id": "F12",
+      "envelope": "E1",
+      "prerequisites": ["F11"]
+    }
+  ]
+}
+```
+
+---
+
 ## 消融檢討(Meta Loop)
 
 收官時回頭問:**這套 harness 裡,哪個組件這次真的擋住了問題?哪個是純開銷?**

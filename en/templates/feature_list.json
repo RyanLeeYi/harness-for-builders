@@ -4,6 +4,7 @@
       "id": "F1",
       "name": "<feature name>",
       "acceptance": "<how to verify: what to run, what you must see to pass. Written before work, frozen after sign-off>",
+      "prerequisites": [],
       "status": "failing",
       "evidence": null
     },
@@ -11,6 +12,7 @@
       "id": "F2",
       "name": "<feature name>",
       "acceptance": "<Given/When/Then, or an executable verification command>",
+      "prerequisites": ["F1"],
       "status": "failing",
       "evidence": null
     }

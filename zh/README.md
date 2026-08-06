@@ -54,7 +54,7 @@ Harness for Builders 是一套完整框架,讓你從零建立「AI agent 能可�
 ### 關鍵名詞
 
 - **Harness**:一組放在 repo 裡的檔案,讓 agent 知道怎麼跑、做什麼、算不算做完。不是框架程式碼,是「工作環境」。
-- **feature_list.json**:範圍與驗收的狀態機。每個功能一條,狀態只有 `failing` / `passing`,改 passing 一定要附證據。
+- **feature_list.json**:範圍與驗收的狀態機。每個功能一條,狀態只有 `failing` / `passing`,改 passing 一定要附證據,功能間的相依用 `prerequisites` 申報 —— 沒申報視為未知,不能當「沒有相依」。
 - **acceptance**:「怎麼驗證才算過」。動工前寫好、簽核後**凍結** —— 這是 harness 最關鍵的一個字。
 - **session**:一次連續的開發工作。agent 的 context 會斷,所以每個 session 收工要留交接。
 
@@ -93,6 +93,7 @@ harness 把這些用**檔案**釘死,而不是每次靠 prompt 提醒。
  │   └─ feature_list.json .... 範圍與驗收的狀態機
  │                            ★ acceptance 動工前簽核後凍結
  │                            ★ 沒 evidence 不准改 passing
+ │                            ★ prerequisites 需申報,未申報 ≠ 沒有相依
  │
  ├─ L2 ── 第一次沒做完就收工 ──────────────────────────────────
  │   ├─ session-handoff.md ... 上次做到哪（覆寫不追加）

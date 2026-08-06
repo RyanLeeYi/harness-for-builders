@@ -74,6 +74,65 @@ Reason: the cheapest lie an AI can tell is "I'm done." Requiring evidence turns 
 
 ---
 
+## Why Features Declare `prerequisites`
+
+Every feature in `feature_list.json` can carry a `prerequisites` field: an array of feature ids that must already be `passing` before this one can be implemented or verified. No dependency means an empty array.
+
+Declaring this isn't process theater — it's what lets an agent (or a human) answer two questions: **what's next, and which two can run in parallel?** Without this field, order can only be guessed from id numbers — but id order isn't dependency order; F3 being filed first doesn't mean it doesn't depend on F5.
+
+Running two features in parallel requires all three conditions at once — missing any one blocks it:
+
+- Neither is in the other's `prerequisites`
+- The files they touch don't overlap
+- The resources they depend on (DB schema, external services, shared state) don't overlap
+
+**Fail-closed**: an older entry with no `prerequisites` field must be treated as "undeclared," not as "no dependency" — its absence can't be used to greenlight ordering or parallel work. This is the same principle as "no evidence doesn't mean it passed": a missing field is missing information, not a default green light.
+
+If the platform supports it, add tooling checks: every id referenced in `prerequisites` must exist, must not point to itself, and must not form a cycle; before a feature can flip to `passing`, everything in its `prerequisites` must already be `passing`.
+
+---
+
+## Why Large Work Gets an Envelope Before Its Slices
+
+Splitting while the spec is still forming is cheap; discovering you need to split after work has started — after acceptance is frozen — is expensive: splitting then means going through the "supersede" (`superseded_by`) flow, which costs far more than cutting the work into pieces up front. That's the reason envelope + slice exists.
+
+Threshold: a piece of work spanning three or more features, or crossing multiple facets (frontend, backend, data). Small work doesn't get an envelope — a single feature is enough.
+
+An envelope isn't a second ID system — **a slice is a feature.** It's a shared constraint layer sitting on top of a group of features:
+
+- `outcome`: the externally visible change once the whole envelope is done
+- `constraints`: technical, interface, or compatibility constraints shared by every slice
+- `non_goals`: what the whole envelope explicitly won't do
+
+Once signed off, `constraints` and `non_goals` freeze at the same level as acceptance — the implementer can't change them.
+
+Process-wise, **sign off the envelope first, then the slices** — and only review "the next slice that's ready to execute"; you don't have to talk through every slice up front. A slice that hasn't come up yet only needs three fields settled: a stable `id`, `outcome`, and `prerequisites`. Missing any one of those three is a blocker you can't wave off with "fill it in later" — without `prerequisites` there's no way to tell whether it can run in parallel with another slice.
+
+On the schema: the `features` array stays flat — don't nest it, or every tool that reads `feature_list.json` has to change too. An envelope is just an extra top-level array; each feature points back to the envelope it belongs to via an `envelope` field (leave it `null` if it doesn't belong to one):
+
+```json
+{
+  "envelopes": [
+    {
+      "id": "E1",
+      "outcome": "<the externally visible change once the whole envelope is done>",
+      "constraints": ["<technical/interface/compatibility constraints shared by every slice>"],
+      "non_goals": ["<what the whole envelope explicitly won't do>"],
+      "signed_off": "<sign-off date; constraints and non_goals freeze once this is set>"
+    }
+  ],
+  "features": [
+    {
+      "id": "F12",
+      "envelope": "E1",
+      "prerequisites": ["F11"]
+    }
+  ]
+}
+```
+
+---
+
 ## The Ablation Review (Meta Loop)
 
 At wrap-up, look back and ask: **which component in this harness actually blocked a problem this time? Which was pure overhead?**

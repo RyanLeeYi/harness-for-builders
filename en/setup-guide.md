@@ -49,9 +49,13 @@ Vague acceptance is useless to an agent:
 
 For features with ambiguity, write a PRD first (`templates/PRD.md` → `docs/prd/<feature>.md`): pin down Given/When/Then, interface contracts, and edge cases, then derive acceptance.
 
+Same step: write down each feature's dependencies in `prerequisites` — which features must already be `passing` before this one can be implemented or verified. No dependency means an empty array; don't leave it out. A field that was never declared must be treated as "undeclared," not used to decide whether things can run in parallel (see [architecture.md](architecture.md)).
+
 **Freeze**: once the requester signs off on acceptance, the implementer must not quietly change it mid-work. Found a gap? Add a new entry, mark it failing, go back for sign-off — don't touch existing entries.
 
 ⚠️ **Discuss, don't guess**: wrong acceptance = a failed harness. When the agent is unsure "what counts as passing," it stops and asks — it does not invent a lax bar.
+
+💡 **Work spanning 3+ features, or crossing multiple facets (frontend, backend, data)**: before starting, wrap it in an envelope and talk slices second (a slice is a feature, not a new ID) — sign off the envelope's `outcome`/`constraints`/`non_goals` first, then approve slices one at a time. Details and a JSON example are in [architecture.md](architecture.md).
 
 ---
 
