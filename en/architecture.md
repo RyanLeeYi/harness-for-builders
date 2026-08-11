@@ -27,7 +27,7 @@ The level boundaries aren't arbitrary — they map to **when a pain first appear
 
 - **L1** solves "scope runs wild" and "fake done" — it hurts from day one, so it's mandatory at kickoff.
 - **L2** solves "cross-session amnesia" — it only hurts once a session ends unfinished, so build it then.
-- **L3** solves "hard-to-trace bugs" and "chaos as features grow" — it hurts only at scale.
+- **L3** solves "hard-to-trace bugs" and "the same class of error recurring" — it hurts once an incident happens, not once feature count grows.
 
 Rule: **don't pre-build a component before its pain appears.** A small tool staying at L1 forever is correct, not lazy.
 

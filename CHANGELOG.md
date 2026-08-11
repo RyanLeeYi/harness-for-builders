@@ -2,6 +2,10 @@
 
 本專案版本紀錄。格式:新的在上。
 
+## v1.2（2026-08-11）
+
+- `README`／`setup-guide`／`architecture`（zh/en）：**L3 的升級條件改為事故觸發**——同型錯誤重複發生、bug 無法從既有 log 定位、邊界違規曾實際發生、或進入 `strict` 風險面。原本的「功能數 > 5」不再是理由;沒有證明價值的 L3 組件應在收官 retro 中移除。來源是上游 harness 的實測:完整 harness 沒有穩定提高任務通過率,卻顯著增加 token 與延遲成本。
+
 ## v1.1（2026-08-06）
 
 - `feature_list.json` 模板（zh/en）：每個 feature 新增 `prerequisites` 欄位，申報「必須先 passing 才能實作或驗證」的相依 feature id，沒有相依為空陣列。

@@ -87,7 +87,7 @@ Before the first session that ends unfinished, create:
 
 ## Step 6: Level Up to L3 — Feedback & Verification
 
-Add these at the first "hard-to-trace bug" or when feature count > 5:
+Add these only when an incident or high risk calls for it — the same class of error recurring, a bug the existing logs cannot locate, a boundary violation that actually happened, or entering `strict` risk territory. **Feature count is not a reason**; drop any L3 component that never proved its value in the closing retro:
 
 - **Structured logs**: startup, key operations, and error paths all need logs — before fixing a bug, confirm the logs can point at the failure.
 - **Boundary guard script**: turn `ARCHITECTURE.md`'s boundary rules into an executable check with grep/linter, `exit 1` on violation, run in CI or pre-commit.

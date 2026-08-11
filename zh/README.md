@@ -82,7 +82,7 @@ harness 把這些用**檔案**釘死,而不是每次靠 prompt 提醒。
 |----|------|----------|
 | **L1 最小 harness** | 專案動工日,寫第一行程式前 | `CLAUDE.md` + `init.sh` + `feature_list.json` |
 | **L2 交接與連續性** | 第一個沒做完就收工的 session 結束前 | `session-handoff.md` + `docs/ARCHITECTURE.md` |
-| **L3 回饋與驗證** | 出現第一個「難查的 bug」或功能數 > 5 | 結構化日誌 + 邊界 guard 腳本 + 驗收角色分離 |
+| **L3 回饋與驗證** | 由事故或高風險觸發:同型錯誤重複發生、bug 無法從既有 log 定位、邊界違規曾實際發生、或進入 `strict` 風險面。功能數**不是**觸發條件 | 結構化日誌 + 邊界 guard 腳本 + 驗收角色分離 |
 
 ```
  你的 repo
@@ -99,7 +99,7 @@ harness 把這些用**檔案**釘死,而不是每次靠 prompt 提醒。
  │   ├─ session-handoff.md ... 上次做到哪（覆寫不追加）
  │   └─ docs/ARCHITECTURE.md . 結構、資料流、邊界規則（只記現況）
  │
- ├─ L3 ── 難查的 bug,或功能數 > 5 ────────────────────────────
+ ├─ L3 ── 由事故或 strict 風險觸發,不看 feature 數量 ──────────
  │   ├─ 結構化日誌 ........... 讓 agent 看得到失敗原因
  │   ├─ check-architecture.sh  把邊界規則變成可執行檢查
  │   └─ 獨立驗收者 ........... 另一個 fresh-context 的 agent／模型

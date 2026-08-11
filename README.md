@@ -83,7 +83,7 @@ The harness nails these down with **files**, instead of reminding via prompt eve
 |-------|------|----------------|
 | **L1 Minimal harness** | Project kickoff day, before the first line of code | `CLAUDE.md` + `init.sh` + `feature_list.json` |
 | **L2 Handoff & continuity** | Before the first session that ends unfinished | `session-handoff.md` + `docs/ARCHITECTURE.md` |
-| **L3 Feedback & verification** | First "hard-to-trace bug" or feature count > 5 | Structured logs + boundary guard script + verifier role separation |
+| **L3 Feedback & verification** | Triggered by an incident or high risk: the same class of error recurring, a bug the existing logs cannot locate, a boundary violation that actually happened, or entering `strict` risk territory. Feature count is **not** a trigger. | Structured logs + boundary guard script + verifier role separation |
 
 ```
  your repo
@@ -100,7 +100,7 @@ The harness nails these down with **files**, instead of reminding via prompt eve
  │   ├─ session-handoff.md ... where we left off (overwrite, don't append)
  │   └─ docs/ARCHITECTURE.md . structure, data flow, boundaries (current only)
  │
- ├─ L3 ── first hard-to-trace bug, or feature count > 5 ───────────
+ ├─ L3 ── triggered by an incident or strict-level risk, not by count ─
  │   ├─ structured logs ...... so the agent can see why it failed
  │   ├─ check-architecture.sh  boundary rules as an executable check
  │   └─ independent verifier .. another fresh-context agent/model
