@@ -2,6 +2,11 @@
 
 本專案版本紀錄。格式:新的在上。
 
+## v1.4（2026-08-18）
+
+- **取消 L1／L2／L3 分級與升降級協定**（README、setup-guide、architecture、templates,zh/en 全部同步）。上游 harness 數週實測:「升級」「降級」這兩個動作完全無感,分級儀式本身沒有改變任何行為——真正在做事的是每個產物自己的加入／移除觸發條件。產物與觸發條件全數保留,改以平表呈現(「什麼時候加」「什麼時候刪」同一行講完),不再排成階梯。architecture 留一段歷史註記說明拿掉的理由。
+- **README 重寫**(zh/en):改採敘事引導結構——tagline、Why、How it works、可直接貼給 agent 的建置 prompt、Operate 與文件對照表、明講上限。「給 AI Agent 的話」一節併入建置 prompt。敘事結構參考 [pilotfish](https://github.com/Nanako0129/pilotfish)。docs 樹同步 v1.3 的規格權威結論:acceptance 自足為權威、`prd/` 降為選配敘事、新增 `archive/`。
+
 ## v1.3（2026-08-18）
 
 - `setup-guide`（zh/en）：新增「規格放哪」的取捨說明。PRD 加一行指過去的 acceptance＝同一份規格存在兩個檔案，兩份會漂移；指定誰為準時要再問「哪一份比較難被偷偷改」——凍結若只保護 `feature_list.json`，「以 PRD 為準」就是把權威交給沒有保護的那一份，而且要到驗收才發現不一致。單人專案建議讓 acceptance 自足並在 passing 後歸檔；有團隊或非工程讀者時保留 PRD，但權威仍歸 acceptance。**`templates/PRD.md` 保留不動**——上游 harness 移除 PRD 層的理由建立在「只有一個人讀 feature_list」這個前提上，那不是這套 kit 的預設情境。

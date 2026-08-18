@@ -36,9 +36,9 @@ repo: <repo link>
 - [ ] M2 (date): <verifiable output>
 
 ## Agent Harness
-- [ ] Build L1 on kickoff day: `CLAUDE.md` + `init.sh` + `feature_list.json` (turn each MVP scope item into feature + acceptance)
+- [ ] Build the kickoff three on day one: `CLAUDE.md` + `init.sh` + `feature_list.json` (turn each MVP scope item into feature + acceptance)
 - [ ] For ambiguous features, write a PRD first (`docs/prd/`)
-- [ ] Add L2 before the first unfinished session; go to L3 when bugs get hard or features grow
+- [ ] Add handoff files before the first unfinished session; add feedback & verification artifacts only when an incident calls for them
 
 ## Quality Bar (applies to every feature)
 - TDD: RED → GREEN → IMPROVE, coverage ≥ 80%

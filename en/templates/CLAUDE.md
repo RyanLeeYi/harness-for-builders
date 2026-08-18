@@ -7,14 +7,14 @@
 
 ## Structure & Boundaries
 - <directory responsibilities, e.g. src/api must not import src/db directly — go through src/services>
-- Full architecture: `docs/ARCHITECTURE.md` (from L2)
+- Full architecture: `docs/ARCHITECTURE.md` (if present)
 
 ## Work Rules
 1. One feature at a time (check `feature_list.json`, pick the first failing)
 2. Status can only go failing → passing, and must attach verification evidence (test output / screenshot path)
 3. Don't do anything outside feature_list; new items get added as failing first, not done directly
 4. Do not modify an existing feature's acceptance after work starts (found a gap → add a new failing entry, back to sign-off)
-5. Update `session-handoff.md` before the session ends (from L2)
+5. Update `session-handoff.md` before the session ends (if present)
 6. At wrap-up, check `git status` + unpushed commits: if code changed, commit and push (remote: <repo URL>)
 
 ## Dev Rules

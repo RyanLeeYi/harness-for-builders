@@ -19,17 +19,19 @@ Can't answer one of them? The harness has a gap — patch it with a file, not wi
 
 ---
 
-## Why "Progressive Levels" Instead of All at Once
+## Why Pain-Triggered Instead of All at Once
 
 Every harness component has a maintenance cost: it needs updating, it goes stale, it eats context. Building everything up front means carrying burdens you don't need yet — which is itself a form of cargo-culting.
 
-The level boundaries aren't arbitrary — they map to **when a pain first appears**:
+Each artifact's trigger maps to **when its pain first appears**:
 
-- **L1** solves "scope runs wild" and "fake done" — it hurts from day one, so it's mandatory at kickoff.
-- **L2** solves "cross-session amnesia" — it only hurts once a session ends unfinished, so build it then.
-- **L3** solves "hard-to-trace bugs" and "the same class of error recurring" — it hurts once an incident happens, not once feature count grows.
+- The **kickoff three** (`CLAUDE.md` + `init.sh` + `feature_list.json`) solve "scope runs wild" and "fake done" — they hurt from day one, so they're mandatory at kickoff.
+- **Handoff files** solve "cross-session amnesia" — it only hurts once a session ends unfinished, so build them then.
+- **Feedback & verification artifacts** solve "hard-to-trace bugs" and "the same class of error recurring" — they hurt once an incident happens, not once feature count grows.
 
-Rule: **don't pre-build a component before its pain appears.** A small tool staying at L1 forever is correct, not lazy.
+Earlier versions arranged these as numbered levels (L1/L2/L3) with an upgrade-and-downgrade protocol. Weeks of real use showed the leveling ceremony itself changed nothing — the per-artifact triggers did all the work — so the levels are gone and the triggers remain.
+
+Rule: **don't pre-build a component before its pain appears.** A small tool living on the kickoff three forever is correct, not lazy.
 
 ---
 
@@ -137,7 +139,7 @@ On the schema: the `features` array stays flat — don't nest it, or every tool 
 
 At wrap-up, look back and ask: **which component in this harness actually blocked a problem this time? Which was pure overhead?**
 
-Drop the ones that didn't earn their keep from the next project. This step keeps the harness itself from becoming cargo-cult — the framework must also submit to being tested by its own standard. If L3's trace is enabled, this judgment can be backed by real data (how many overreaches it caught, which acceptances failed) rather than impressions.
+Drop the ones that didn't earn their keep from the next project. This step keeps the harness itself from becoming cargo-cult — the framework must also submit to being tested by its own standard. If structured trace is enabled, this judgment can be backed by real data (how many overreaches it caught, which acceptances failed) rather than impressions.
 
 ---
 

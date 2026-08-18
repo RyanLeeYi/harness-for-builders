@@ -1,141 +1,139 @@
 **[English](../README.md)** | **繁體中文**
 
-# Harness for Builders：讓任何 AI agent 可靠地幫你把專案做完
+# Harness for Builders
 
-> By [Ryan Lee](https://github.com/RyanLeeYi)
->
-> **你可以把整份文件丟給任何 AI,它就會帶你把 harness 建起來。**
->
-> **v1.0** · 最後更新:2026-07-24 · [Changelog](../CHANGELOG.md)
+> AI coding agent 的可靠性不來自 prompt 寫得多好——來自 repo 裡的結構化產物。
+> 這個框架告訴你該建哪些檔案、什麼時候建，而且建置這件事本身可以交給你的 agent。
 
-> 💡 **形態受 [Vault for Founders](https://github.com/cwlin0131/Vault-for-Founders)(作者 CW Lin)啟發** —— 借用它「文件丟給任何 AI 就能自我建置」的做法,套用到 *agent harness* 而非創辦人知識庫。底層方法改編自 [Learn Harness Engineering](https://walkinglabs.github.io/learn-harness-engineering/zh-TW/projects/)。
+**Harness for Builders** 是一套工具中立的框架，用來打造一個 AI agent 能可靠工作的 repo：Claude Code、Cursor、Codex，或任何讀寫得了檔案的工具都適用。它裝進你 repo 的是檔案，不是 runtime 或服務。動工日必建三個檔案；其餘每個產物都有自己的觸發條件——痛點出現才加，不再發揮作用就刪。
 
----
+> By [Ryan Lee](https://github.com/RyanLeeYi) · **v1.4** · 最後更新 2026-08-18 · [Changelog](../CHANGELOG.md)
 
-## 給 AI Agent 的話
+## 目錄
 
-如果你是正在讀這份文件、要幫使用者建立開發環境的 AI agent:
+- [為什麼需要](#為什麼需要)
+- [怎麼運作](#怎麼運作)
+- [開始使用](#開始使用)
+- [日常操作](#日常操作)
+- [文件](#文件)
+- [上限](#上限)
+- [授權與致謝](#授權與致謝)
 
-Harness for Builders 是一套用 repo 結構化產物管理 AI coding agent 工作環境的框架。你的任務是帶使用者把它建起來。**檔案骨架可以直接建**(`init.sh`、`feature_list.json` 的殼);但**核心內容 —— feature 的 acceptance、架構邊界、專案規則 —— 必須先跟使用者討論再寫,不是填空。**
+## 為什麼需要
 
-**建議閱讀順序:**
+把越多工作交給 AI agent——寫功能、修 bug、重構——它就越需要一個「知道現況」的地方：專案怎麼跑、規則是什麼、範圍在哪、上次做到哪。那個地方就是你的 **harness**。沒有它，你會撞上一組測試蓋不到的失效點——它們是「協作」的失敗，不是「程式」的失敗：
 
-1. 讀這份 README,掌握整體架構與哲學
-2. 讀 [setup-guide.md](setup-guide.md),照步驟建置
-3. 讀 [architecture.md](architecture.md),理解設計取捨(為什麼三級漸進、為什麼凍結 acceptance)
-4. 用 [templates/](templates/) 產出使用者專案的骨架
-5. **重要**:`acceptance` 和架構邊界不能替使用者猜。照 setup-guide 的討論流程,一層一層帶使用者定義出「怎麼驗證才算做完」。驗收標準寫歪,整個 harness 就失效
-6. 建好後,讀 [optimization-guide.md](optimization-guide.md),幫使用者把每個 session 都要讀的操作檔保持精瘦
+| 症狀 | 用什麼擋 |
+|------|----------|
+| Agent 忘記上次做到哪，每個 session 重新摸索 | `session-handoff.md` + 固定開場 prompt |
+| 宣稱「做完了」但沒實際驗證 | `feature_list.json` 的 evidence 閘門 |
+| 動到不該碰的東西、擅自擴大範圍 | `ARCHITECTURE.md` 邊界 + 「清單外的事不做」 |
+| 為了讓測試過，偷偷放寬標準 | **凍結 acceptance** |
+| 每個 session 重讀整個 codebase，燒光 context | 索引化的 `CLAUDE.md` + 檔案瘦身 |
 
----
+prompt 每個 session 重來一次、會漂移、會被忘記；檔案不會——它躺在 repo 裡當唯一事實來源。harness 用**檔案**把每個失效點釘死，而不是每次用 prompt 提醒。
 
-## 這是什麼
+## 怎麼運作
 
-Harness for Builders 是一套完整框架,讓你從零建立「AI agent 能可靠工作的 repo」,包含為什麼、怎麼做、以及現成模板。
-
-當你把越來越多開發工作交給 AI(寫功能、修 bug、重構),它需要一個能「知道現況」的地方:專案怎麼跑、規則是什麼、範圍到哪、上次做到哪。那個地方就是你的 **harness**。
-
-**核心主張:agent 的可靠性不來自 prompt 寫得多好,來自 repo 裡的結構化產物。** prompt 會被遺忘、會漂移、每個 session 都要重講;檔案不會 —— 它就在 repo 裡,是唯一事實來源。
+一個沒有任何對話歷史的新 agent 打開你的 repo，必須答得出四個問題：
 
 ```
- 一個全新的 agent 打開你的 repo,不靠對話歷史,要能回答四個問題:
+   怎麼跑起來？    ----->  init.sh
+   現在做到哪？    ----->  feature_list.json + session-handoff.md
+   下一步做什麼？  ----->  feature_list.json 裡第一條 failing
+   怎樣算做完？    ----->  該 feature 的 acceptance（已凍結）
 
-   ┌ 怎麼跑起來?  ──────→  init.sh
-   │
-   ├ 做到哪了?    ──────→  feature_list.json  +  session-handoff.md
-   │
-   ├ 接下來做什麼? ──────→  feature_list.json 第一個 failing 的條目
-   │
-   └ 怎麼算做完?  ──────→  該 feature 的 acceptance（已凍結）
-
- 任一題答不出來 = harness 有缺口 → 補檔案,不要用 prompt 補
+   有一題答不出來 = harness 有缺口 -> 用檔案補，不是用 prompt 補
 ```
 
-### 關鍵名詞
+三個檔案從動工日就負責回答它們。其餘全部**痛點觸發**：每個產物都有明確的「什麼時候加」——也有明確的「什麼時候刪」，因為只有加入路徑的 harness 保證單向長胖：加東西感覺安全、刪東西感覺有風險，陳舊的層會沉積下來。沒有階梯要爬、沒有升降級儀式，觸發條件就是全部的規則。
 
-- **Harness**:一組放在 repo 裡的檔案,讓 agent 知道怎麼跑、做什麼、算不算做完。不是框架程式碼,是「工作環境」。
-- **feature_list.json**:範圍與驗收的狀態機。每個功能一條,狀態只有 `failing` / `passing`,改 passing 一定要附證據,功能間的相依用 `prerequisites` 申報 —— 沒申報視為未知,不能當「沒有相依」。
-- **acceptance**:「怎麼驗證才算過」。動工前寫好、簽核後**凍結** —— 這是 harness 最關鍵的一個字。
-- **session**:一次連續的開發工作。agent 的 context 會斷,所以每個 session 收工要留交接。
-
----
-
-## 為什麼需要 harness
-
-沒有 harness 的 AI 開發,你大概遇過這些:
-
-| 症狀 | harness 怎麼擋 |
-|------|----------------|
-| agent 忘記上次做到哪,每次重新摸索 | `session-handoff.md` + 固定開場 |
-| 宣稱「做完了」但根本沒驗證 | `feature_list` 的 evidence 閘門 |
-| 改到不該改的東西、擅自擴大範圍 | `ARCHITECTURE.md` 邊界 + 「不做 list 之外的事」 |
-| 為了讓測試過,偷偷放寬標準 | **凍結的 acceptance** |
-| 每個 session 都把整個 codebase 讀一遍,燒 context | index 化的 `CLAUDE.md` + 檔案瘦身 |
-
-harness 把這些用**檔案**釘死,而不是每次靠 prompt 提醒。
-
----
-
-## 三級漸進(核心哲學:按需要升級,不要一次全上)
-
-| 級 | 時機 | 建置產物 |
-|----|------|----------|
-| **L1 最小 harness** | 專案動工日,寫第一行程式前 | `CLAUDE.md` + `init.sh` + `feature_list.json` |
-| **L2 交接與連續性** | 第一個沒做完就收工的 session 結束前 | `session-handoff.md` + `docs/ARCHITECTURE.md` |
-| **L3 回饋與驗證** | 由事故或高風險觸發:同型錯誤重複發生、bug 無法從既有 log 定位、邊界違規曾實際發生、或進入 `strict` 風險面。功能數**不是**觸發條件 | 結構化日誌 + 邊界 guard 腳本 + 驗收角色分離 |
+| 產物 | 什麼時候加 | 什麼時候刪 |
+|------|-----------|-----------|
+| `CLAUDE.md` + `init.sh` + `feature_list.json` | 動工日、第一行 code 之前（約 20 分鐘） | 不刪——這就是 harness |
+| `session-handoff.md` | 第一次沒做完就收工之前 | 連續數個 session 沒被讀過 |
+| `docs/ARCHITECTURE.md` | 新 agent 無法從 code 看出邊界與資料流 | code 已經自己講得清楚 |
+| 結構化日誌、邊界 guard 腳本、獨立驗收者 | 事故觸發：同型錯誤重複發生、bug 無法從既有 log 定位、邊界違規實際發生過。功能數量**永遠不是**理由 | 累積足夠樣本仍沒攔到任何一次真實越權 |
 
 ```
  你的 repo
- │
- ├─ L1 ── 動工日必建,約 20 分鐘 ────────────────────────────────
- │   ├─ CLAUDE.md ............ 規則、命令、邊界（每 session 都讀,保持精瘦）
- │   ├─ init.sh .............. 一鍵回到「可開發、可驗證」狀態
- │   └─ feature_list.json .... 範圍與驗收的狀態機
- │                            ★ acceptance 動工前簽核後凍結
- │                            ★ 沒 evidence 不准改 passing
- │                            ★ prerequisites 需申報,未申報 ≠ 沒有相依
- │
- ├─ L2 ── 第一次沒做完就收工 ──────────────────────────────────
- │   ├─ session-handoff.md ... 上次做到哪（覆寫不追加）
- │   └─ docs/ARCHITECTURE.md . 結構、資料流、邊界規則（只記現況）
- │
- ├─ L3 ── 由事故或 strict 風險觸發,不看 feature 數量 ──────────
- │   ├─ 結構化日誌 ........... 讓 agent 看得到失敗原因
- │   ├─ check-architecture.sh  把邊界規則變成可執行檢查
- │   └─ 獨立驗收者 ........... 另一個 fresh-context 的 agent／模型
- │
- └─ docs/ ── 收官才回頭讀,不進每日 context ────────────────────
-     ├─ PLAN.md ............. 為什麼做、範圍、成功指標
-     ├─ prd/<feature>.md .... 具體要什麼、怎麼算對
-     ├─ DEVLOG.md ........... 卡點與解法（onboarding／事故回顧原料）
-     └─ DECISIONS.md ........ 難回頭的技術選擇與理由
-
-
- 角色分離（L3）:生成的人不可以是驗收的人
-
-   規劃者 ──→ 生成者 ──→ 評估者(品質) ──→ 評估者(驗收)
-   怎麼拆      怎麼做      寫得好不好         做對了沒
-                                              ▲
-                                    只餵 PRD + 成品,不給開發過程
-                                    由另一個 fresh-context 模型執行
+ |
+ |- 動工日必建 ---------------------------------------------------
+ |   |- CLAUDE.md ............ 規則、指令、邊界（每個 session 都讀）
+ |   |- init.sh .............. 一個指令回到「可開發可驗證」狀態
+ |   |- feature_list.json .... 範圍與驗收的狀態機
+ |                             * acceptance 簽核後凍結，動工之前
+ |                             * 沒有 evidence 不得翻 passing
+ |                             * prerequisites 要申報；沒申報 != 沒有
+ |
+ |- 痛點觸發，各走各的時鐘 ---------------------------------------
+ |   |- session-handoff.md ... 上次做到哪（覆寫，不累積）
+ |   |- docs/ARCHITECTURE.md . 結構、資料流、邊界（只寫現況）
+ |   |- 結構化日誌 ........... 讓 agent 看得到自己為什麼失敗
+ |   |- check-architecture.sh  邊界規則變成跑得起來的檢查
+ |   |- 獨立驗收者 ........... 另一個 fresh-context agent，只餵
+ |                             凍結的 acceptance + 成品，不給過程
+ |
+ |- docs/ -- 收官才讀，不進日常 context --------------------------
+     |- PLAN.md ............. 為什麼做、範圍、成功指標
+     |- DEVLOG.md ........... 卡點與解法（onboarding / retro 素材）
+     |- DECISIONS.md ........ 難回頭的選擇與理由
+     |- prd/（選配）......... 給團隊或非工程讀者的敘事規格
+     |- archive/ ............ passing feature 的 acceptance 原文歸檔
 ```
 
-> **不要 cargo-cult。** 小專案一輩子停在 L1 都沒問題。每個組件都有維護成本,只在它真的擋住問題時才加。收官時做一次**消融檢討**:哪個組件這次真的發揮作用?沒用到的,下個專案不要照抄。設計理由見 [architecture.md](architecture.md)。
+關鍵名詞一口氣講完：**harness** 是上面那組檔案——工作環境，不是框架程式碼。**feature_list.json** 是範圍的狀態機：一條 feature 一個條目，status 只有 `failing`/`passing`，翻 passing 一律要證據。**acceptance** 是「怎麼驗證做完了」——動工前寫好、簽核、然後**凍結**：整套 harness 最重要的一個詞。
 
----
+規格放哪，一條規則：**acceptance 是權威，而且必須自足**——不用打開別的文件就能逐條判定。PRD 可以有，當作給團隊與非工程讀者的敘事；但如果你的凍結保護只蓋 `feature_list.json`，宣告「以 PRD 為準」就是把權威交給唯一沒有保護的那份檔案。完整的失敗故事在 [setup-guide](setup-guide.md)。
 
-## 我需要什麼才能開始
+## 開始使用
 
-- 一個 git repo(新專案或既有專案都行)
-- 一個 AI coding agent(Claude Code、Cursor、Codex、或任何能讀寫檔案的)
-- 20 分鐘建 L1
+你需要：一個 git repo（新舊皆可）、一個 AI coding agent、20 分鐘建起手三檔。
 
-接下來 → [setup-guide.md](setup-guide.md)
+**你可以把整個 repository 丟給你的 agent，它會帶你建完。** 在你的專案裡打開 agent，貼上：
 
----
+```text
+讀 https://github.com/RyanLeeYi/harness-for-builders —— 從 README.md 開始，
+然後照 zh/setup-guide.md 一步步在這個 repo 建出最小 harness。
+骨架（init.sh、feature_list.json）可以直接建，但核心內容不准猜：
+每條 feature 的 acceptance、架構邊界、專案規則，要逐層訪談我來定。
+動筆前先給我看完整的檔案計畫。
+```
 
-## 這跟「寫好測試」「寫好 prompt」有什麼不同
+Agent 唯一不能替你做的事，是決定**怎樣算做完**。acceptance 寫錯，整套 harness 就在驗證錯的東西——所以 setup-guide 是一場訪談，不是一張表單。
 
-- **比 prompt 持久**:prompt 每個 session 重來;harness 是檔案,活在 repo 裡。
-- **比測試多一層**:測試驗「程式對不對」;harness 還管「範圍、交接、context、越權」—— 這些是 AI 協作特有的失效點,測試蓋不到。
-- **獨立驗收**:生成的 agent 會偏袒自己的產物,所以驗收交給另一個 fresh-context 的 agent/模型。詳見 [architecture.md](architecture.md) 的「生成者 ≠ 驗收者」。
+## 日常操作
+
+| 任務 | 去哪裡 |
+|------|--------|
+| 建最小 harness，痛點出現再加產物 | [Setup guide](setup-guide.md) |
+| 理解設計：為什麼痛點觸發、為什麼凍結 acceptance | [Architecture](architecture.md) |
+| 專案變大時維持每 session 必讀檔的精瘦 | [Optimization guide](optimization-guide.md) |
+| 直接用現成模板開工 | [templates/](templates/) |
+| 團隊 repo、工具混雜、沒有 CI | [project-harness-kit](https://github.com/RyanLeeYi/project-harness-kit) —— 可執行關卡變體 |
+| 看這套方法的個人實際部署 | [ai-dev-harness](https://github.com/RyanLeeYi/ai-dev-harness) —— 活的地圖 |
+
+## 文件
+
+| 主題 | 文件 |
+|------|------|
+| 逐步建置與訪談流程 | [zh/setup-guide.md](setup-guide.md) · [English](../en/setup-guide.md) |
+| 設計決策與取捨 | [zh/architecture.md](architecture.md) · [English](../en/architecture.md) |
+| 常駐檔案瘦身 | [zh/optimization-guide.md](optimization-guide.md) · [English](../en/optimization-guide.md) |
+| 可複製的模板 | [zh/templates/](templates/) · [English](../en/templates/) |
+| 版本紀錄 | [CHANGELOG.md](../CHANGELOG.md) |
+
+## 上限
+
+先講清楚，因為知道上限才用得對：
+
+- **凍結不等於不會錯。** 凍結的 acceptance 也可能把現實描述錯。驗收 fail 對上的是規格 bug 時，回簽核流程改規格——不要把實作扭去對齊錯的目標。
+- **harness 管流程，不管正確性。** 它是測試之外的一層：範圍、交接、context、越權。功能本身對不對，仍取決於你寫的 acceptance。
+- **檔案擋不住蓄意造假。** evidence 閘門擋的是「順手宣稱完成」；有寫檔權限的 agent 可以偽造。真正的強制要靠 agent 碰不到的檢查——腳本、hook、PR 關卡（見邊界 guard 與 project-harness-kit）。
+- **不要 cargo-cult。** 小工具一輩子只靠起手三檔是正確的，不是偷懶。收官時問一句：這次哪個組件真的發揮了作用？沒發揮的，下個專案不照抄。
+
+## 授權與致謝
+
+方法改編自 [Learn Harness Engineering](https://walkinglabs.github.io/learn-harness-engineering/zh-TW/projects/)。「文件丟給任何 AI 就能自我建置」的形態借自 CW Lin 的 [Vault for Founders](https://github.com/cwlin0131/Vault-for-Founders)。本 README 的敘事結構參考 [pilotfish](https://github.com/Nanako0129/pilotfish)。
+
+MIT License —— 見 [LICENSE](../LICENSE)。

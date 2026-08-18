@@ -36,9 +36,9 @@ repo: <repo 連結>
 - [ ] M2(日期):<可驗證的產出>
 
 ## Agent Harness
-- [ ] 動工日建 L1:`CLAUDE.md` + `init.sh` + `feature_list.json`(MVP 範圍逐條轉 feature + acceptance)
+- [ ] 動工日建起手三檔:`CLAUDE.md` + `init.sh` + `feature_list.json`(MVP 範圍逐條轉 feature + acceptance)
 - [ ] 需求有模糊空間的 feature 先寫 PRD(`docs/prd/`)
-- [ ] 第一個未完成收工的 session 前補 L2;bug 難查或功能變多時上 L3
+- [ ] 第一個未完成收工的 session 前補交接檔;回饋與驗證產物只由事故觸發才加
 
 ## 品質標準(每個 feature 都適用)
 - TDD:RED → GREEN → IMPROVE,覆蓋率 ≥ 80%
