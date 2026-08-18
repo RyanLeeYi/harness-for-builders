@@ -108,6 +108,36 @@ passing always requires evidence. **acceptance** is "how to verify it's done" �
 written before work starts, signed off, then **frozen**: the single most
 important word in the harness.
 
+### Roles and delegation
+
+The harness governs files; this section governs *who does the work*. It is
+tool-neutral — the same split applies whether your agent tool has subagents,
+multiple models, or just multiple chat windows.
+
+**Default: the main session does the work itself.** Delegation has a real cost
+(re-sending context, losing the thread), so delegate only when one of three
+things is true: the user asked for it, two or more truly independent tracks can
+run in parallel, or a search/batch job would eat massive context and its inputs
+and stop conditions are already pinned down.
+
+When you do split, there are only three kinds of worker, and they differ by
+what they're *for*:
+
+| Role | Purpose | Contract |
+|------|---------|----------|
+| **Executor** | Save the main session's budget on bounded implementation | Needs five things up front: goal, constraints, done criteria, file paths, and why. Missing one — don't dispatch. Never gets architecture calls, scope changes, or security work |
+| **Explorer** | Read-only search that would flood the main context | Needs four: the question, the scope, the evidence format, the stop condition |
+| **Checker** | Answer "is it done right" without the author's bias | Fed **only the frozen acceptance and the artifact** — never the development process or the author's reasoning. Independence comes from the fresh context, not from being a different model. One checker per axis; stacking a second same-model checker doubles cost and adds fake independence, because clones share the same misreadings |
+
+Two things never leave the main session: diagnosing an unknown bug (trace,
+hypothesis, fix, and verification are one coupled path — splitting it into a
+pipeline loses the thread), and the final judgment on a checker's findings
+(the checker reports severity and evidence; deciding fix/defer/reject is the
+orchestrator's job, and it can't be outsourced).
+
+Design rationale — including why "generator must not verify its own work" —
+is in [architecture.md](en/architecture.md).
+
 One rule about where the spec lives: **acceptance is the authority, and it must
 be self-sufficient** — decidable item by item without opening another document.
 A PRD is welcome as narrative for team members and non-engineer readers, but if

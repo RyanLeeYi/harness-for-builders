@@ -5,7 +5,7 @@
 ## v1.4（2026-08-18）
 
 - **取消 L1／L2／L3 分級與升降級協定**（README、setup-guide、architecture、templates,zh/en 全部同步）。上游 harness 數週實測:「升級」「降級」這兩個動作完全無感,分級儀式本身沒有改變任何行為——真正在做事的是每個產物自己的加入／移除觸發條件。產物與觸發條件全數保留,改以平表呈現(「什麼時候加」「什麼時候刪」同一行講完),不再排成階梯。architecture 留一段歷史註記說明拿掉的理由。
-- **README 重寫**(zh/en):改採敘事引導結構——tagline、Why、How it works、可直接貼給 agent 的建置 prompt、Operate 與文件對照表、明講上限。「給 AI Agent 的話」一節併入建置 prompt。敘事結構參考 [pilotfish](https://github.com/Nanako0129/pilotfish)。docs 樹同步 v1.3 的規格權威結論:acceptance 自足為權威、`prd/` 降為選配敘事、新增 `archive/`。
+- **README 重寫**(zh/en):改採敘事引導結構——tagline、Why、How it works、可直接貼給 agent 的建置 prompt、Operate 與文件對照表、明講上限。「給 AI Agent 的話」一節併入建置 prompt。敘事結構參考 [pilotfish](https://github.com/Nanako0129/pilotfish)。新增**「角色與委派」**一節(zh/en):direct-first、三種 worker(執行者/探索者/檢查者)各自的目的與派工契約、兩件不可外包的事(未知 bug 診斷、對檢查結果的最終判斷)——這些是換掉工具仍成立的方法,先前被誤歸在編排層而缺席。docs 樹同步 v1.3 的規格權威結論:acceptance 自足為權威、`prd/` 降為選配敘事、新增 `archive/`。
 
 ## v1.3（2026-08-18）
 
