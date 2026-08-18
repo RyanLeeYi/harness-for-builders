@@ -7,13 +7,16 @@
 
 **Harness for Builders** 是一套工具中立的框架，用來打造一個 AI agent 能可靠工作的 repo：Claude Code、Cursor、Codex，或任何讀寫得了檔案的工具都適用。它裝進你 repo 的是檔案，不是 runtime 或服務。動工日必建三個檔案；其餘每個產物都有自己的觸發條件——痛點出現才加，不再發揮作用就刪。
 
-> By [Ryan Lee](https://github.com/RyanLeeYi) · **v1.4** · 最後更新 2026-08-18 · [Changelog](../CHANGELOG.md)
+它有兩條車道。**車道 A（任何工具）**：訪談引導、自己建 repo 產物——見[開始使用](#開始使用)。**車道 B（Claude Code）**：加裝強制層——凍結 acceptance 與危險命令的 DENY hook、四支釘死邊界的角色檔——見[安裝](#安裝claude-code-強制層)。車道 A 永遠不依賴車道 B。
+
+> By [Ryan Lee](https://github.com/RyanLeeYi) · **v2.0** · 最後更新 2026-08-18 · [Changelog](../CHANGELOG.md)
 
 ## 目錄
 
 - [為什麼需要](#為什麼需要)
 - [怎麼運作](#怎麼運作)
 - [開始使用](#開始使用)
+- [安裝（Claude Code 強制層）](#安裝claude-code-強制層)
 - [日常操作](#日常操作)
 - [文件](#文件)
 - [上限](#上限)
@@ -119,6 +122,27 @@ harness 管檔案；這一節管**工作誰來做**。它是工具中立的—�
 ```
 
 Agent 唯一不能替你做的事，是決定**怎樣算做完**。acceptance 寫錯，整套 harness 就在驗證錯的東西——所以 setup-guide 是一場訪談，不是一張表單。
+
+## 安裝（Claude Code 強制層）
+
+上面的一切靠約定運作——agent 讀了檔案、同意遵守。這條車道給規則裝上**牙齒**：在工具執行前就 DENY。它裝進你的全域 Claude Code 設定：
+
+- **3 支 hook**——已簽核 acceptance 的凍結保護（Edit/Write/Bash 三條路徑都蓋）、危險命令攔截（`rm -rf`、force push、`--no-verify`）、與 harness 流程競爭的規劃 skill 閘門、檔案 emoji 閘門；每支自帶回歸測試
+- **4 支角色檔**——執行者、探索者、兩種檢查者，模型與唯讀邊界釘在 frontmatter（驗收者自帶 hook，會改變 repo 狀態的 git 指令直接 DENY）
+- **1 支 skill**——`/harness-init`：在任何 repo 建出符合規格的最小 harness，接著訪談你定第一條 acceptance
+
+Clone 本 repo，在裡面啟動 Claude Code，貼上：
+
+```text
+讀這個 checkout 裡的 install/AGENT-INSTALL.md，照它把 harness 強制層裝進我的
+全域 Claude Code 設定。動筆前先給我看完整的合併計畫、取得我的同意。
+```
+
+> **信任邊界**：這份 payload 會載入你每個未來的 session。核准寫入前先審
+> [claude-code/](../claude-code/)——角色檔、腳本、settings 片段。runbook 的
+> 收尾是跑完四套測試並故意觸發一次 DENY：沒驗過的防線等於沒有防線。
+
+裝完 `/hooks` 重新 trust 並重開 session。Uninstall 步驟在同一份 runbook。
 
 ## 日常操作
 

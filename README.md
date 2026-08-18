@@ -14,7 +14,13 @@ service. Three files are mandatory at kickoff; every other artifact has its own
 trigger — you add it when its pain appears, and drop it when it stops earning
 its keep.
 
-> By [Ryan Lee](https://github.com/RyanLeeYi) · **v1.4** · Last updated
+It has two lanes. **Lane A (any tool)**: build the repo artifacts yourself,
+guided by an interview — see [Get started](#get-started). **Lane B (Claude
+Code)**: additionally install the enforcement layer — hooks that DENY frozen-
+acceptance edits and dangerous commands, plus four pinned role agents — see
+[Install](#install-claude-code-enforcement-lane). Lane A never requires lane B.
+
+> By [Ryan Lee](https://github.com/RyanLeeYi) · **v2.0** · Last updated
 > 2026-08-18 · [Changelog](CHANGELOG.md)
 
 ## Contents
@@ -22,6 +28,7 @@ its keep.
 - [Why](#why)
 - [How it works](#how-it-works)
 - [Get started](#get-started)
+- [Install (Claude Code enforcement lane)](#install-claude-code-enforcement-lane)
 - [Operate](#operate)
 - [Documentation](#documentation)
 - [Limits](#limits)
@@ -166,6 +173,39 @@ files before writing anything.
 The one thing the agent cannot do for you is decide **what counts as done**.
 If the acceptance is wrong, the whole harness verifies the wrong thing — that's
 why the setup guide is an interview, not a form.
+
+## Install (Claude Code enforcement lane)
+
+Everything above works by convention — files the agent reads and agrees to
+follow. This lane adds **teeth**: rules become mechanisms that DENY before the
+tool runs. It installs into your global Claude Code configuration:
+
+- **3 hooks** — freeze protection for signed-off acceptance (Edit/Write/Bash
+  all covered), dangerous-command denial (`rm -rf`, force push, `--no-verify`),
+  a process gate against competing planning flows, and an emoji guard for
+  files; each ships with its regression test suite
+- **4 role agents** — executor, explorer, and two checkers, with model and
+  read-only boundaries pinned in frontmatter (the acceptance verifier carries
+  its own hook that denies repo-mutating git commands)
+- **1 skill** — `/harness-init`: scaffold a spec-compliant minimal harness in
+  any repo, then interview you for the first feature's acceptance
+
+Clone the repo, start Claude Code in it, and paste:
+
+```text
+Read install/AGENT-INSTALL.md in this checkout and follow it to install the
+harness enforcement layer into my global Claude Code configuration. Show me
+the full merge plan and get my approval before writing anything.
+```
+
+> **Trust boundary:** this payload loads into every future session. Review
+> [claude-code/](claude-code/) — the agents, the scripts, the settings
+> fragment — before approving writes. The runbook ends by running all four
+> test suites and deliberately triggering one DENY: an unverified defense is
+> no defense.
+
+After installing, `/hooks` to re-trust and restart the session. Uninstall
+steps are in the same runbook.
 
 ## Operate
 

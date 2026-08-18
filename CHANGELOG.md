@@ -2,6 +2,12 @@
 
 本專案版本紀錄。格式:新的在上。
 
+## v2.0（2026-08-18）
+
+- **新增車道 B:Claude Code 強制層安裝包**。`claude-code/` payload——3 支 hook(harness-trace 凍結保護與危險命令攔截、harness-gate 流程閘門、no-emoji-guard)含各自回歸測試(35+20+全數+16 條,已在 payload 上實跑全綠)、4 支角色檔(executor/Explore/acceptance-verifier/plan-verifier,驗收者自帶 verifier-bash-guard hook)、`/harness-init` skill(在任何 repo 建符合規格的最小 harness,骨架直建、acceptance 訪談)、settings hooks 片段(合併不覆寫)。`install/AGENT-INSTALL.md` 是 agent 執行的 runbook:盤點 → 合併計畫 → 使用者核准 → 寫入 → 跑測試＋故意觸發一次 DENY 驗證,含更新與 uninstall。安裝機制照 [pilotfish](https://github.com/Nanako0129/pilotfish) 的形態。
+- **去個人化**:所有個人路徑改為環境變數(`HARNESS_GATE_ROOTS`/`HARNESS_GATE_VAULT`/`HARNESS_TRACE_VAULT`/`HARNESS_TRACE_VAULT_PROJECTS`/`NO_EMOJI_EXEMPT`),沒設時對應功能安靜停用(fail-open)、核心保護不受影響。修掉一個空值陷阱:trace 的 vault 排除在空字串時 `""*` 會匹配所有路徑而整支停用,改為非空才比對。
+- README(zh/en):新增雙車道說明與 Install 節,含信任邊界警語。車道 A(工具中立自建)不依賴車道 B。
+
 ## v1.4（2026-08-18）
 
 - **取消 L1／L2／L3 分級與升降級協定**（README、setup-guide、architecture、templates,zh/en 全部同步）。上游 harness 數週實測:「升級」「降級」這兩個動作完全無感,分級儀式本身沒有改變任何行為——真正在做事的是每個產物自己的加入／移除觸發條件。產物與觸發條件全數保留,改以平表呈現(「什麼時候加」「什麼時候刪」同一行講完),不再排成階梯。architecture 留一段歷史註記說明拿掉的理由。

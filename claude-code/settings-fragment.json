@@ -1,0 +1,40 @@
+{
+  "_comment": "Merge this into ~/.claude/settings.json (or your CLAUDE_CONFIG_DIR settings.json). MERGE, do not overwrite: append these entries to any existing hooks arrays. See install/AGENT-INSTALL.md.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/scripts/harness-trace.sh\"",
+            "timeout": 15,
+            "statusMessage": "harness overreach check"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill|Read|Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/scripts/harness-gate.sh\"",
+            "timeout": 15,
+            "statusMessage": "harness process check"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$HOME/.claude/scripts/no-emoji-guard.py\"",
+            "statusMessage": "Scanning for emoji..."
+          }
+        ]
+      }
+    ]
+  },
+  "_env_comment": "Optional environment variables (set in your shell profile or settings env): HARNESS_GATE_ROOTS=<;-separated project roots for cwd-drift detection>, HARNESS_GATE_VAULT=<knowledge-base root to leave alone>, HARNESS_TRACE_VAULT=<same, for the tracer>, HARNESS_TRACE_VAULT_PROJECTS=<external subtree your wrap-up flow is allowed to write>, NO_EMOJI_EXEMPT=<;-separated path substrings exempt from the emoji guard>"
+}
