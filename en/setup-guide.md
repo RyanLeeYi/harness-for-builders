@@ -49,6 +49,24 @@ Vague acceptance is useless to an agent:
 
 For features with ambiguity, write a PRD first (`templates/PRD.md` → `docs/prd/<feature>.md`): pin down Given/When/Then, interface contracts, and edge cases, then derive acceptance.
 
+> **Where the spec lives is a choice, and it has a failure mode.** A PRD plus a
+> one-line acceptance pointing at it means one spec in two files, and the two
+> drift. Whichever one you name as authoritative, ask a second question: which
+> of the two is harder to change unnoticed? If your freeze protects
+> `feature_list.json` and nothing protects `docs/prd/`, then "the PRD wins" hands
+> authority to the unprotected copy, and the mismatch only surfaces during
+> verification, after the work is built.
+>
+> Solo, or when everyone who judges the work reads `feature_list.json` directly:
+> skip the PRD and write acceptance that stands on its own, self-sufficient
+> enough to be judged clause by clause. Archive it once the feature passes, so
+> the file stays scannable.
+>
+> With a team, or non-engineer stakeholders, or an approval that happens outside
+> the repo: keep the PRD — those readers are exactly who it exists for. Then
+> make acceptance the authority anyway, treat the PRD as the narrative, and never
+> let a verifier judge against a file your freeze does not cover.
+
 Same step: write down each feature's dependencies in `prerequisites` — which features must already be `passing` before this one can be implemented or verified. No dependency means an empty array; don't leave it out. A field that was never declared must be treated as "undeclared," not used to decide whether things can run in parallel (see [architecture.md](architecture.md)).
 
 **Freeze**: once the requester signs off on acceptance, the implementer must not quietly change it mid-work. Found a gap? Add a new entry, mark it failing, go back for sign-off — don't touch existing entries.

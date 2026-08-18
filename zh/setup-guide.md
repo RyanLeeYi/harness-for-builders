@@ -49,6 +49,17 @@
 
 需求有模糊空間的 feature,先寫 PRD(`templates/PRD.md` → `docs/prd/<feature>.md`),把 Given/When/Then、介面契約、邊界情況定清楚,再轉成 acceptance。
 
+> **規格放哪是一個選擇,而且它有一種失效方式。** 「PRD + 一行 acceptance 指過去」等於同一份規格
+> 存在兩個檔案,兩份會漂移。不論你指定哪一份為準,都要再問第二個問題:**這兩份裡,哪一份比較難被
+> 偷偷改?** 如果凍結保護的是 `feature_list.json`,而 `docs/prd/` 什麼保護都沒有,那麼「以 PRD 為準」
+> 就是把權威交給沒有保護的那一份 —— 而且要到驗收啟動、實作都做完了,才會發現兩邊不一致。
+>
+> **單人專案,或判定對錯的人都直接讀 `feature_list.json`**:不要寫 PRD,把 acceptance 寫到自足,
+> 自足到可以逐條判定。feature passing 之後整段歸檔,檔案就不會愈長愈難掃。
+>
+> **有團隊、有非工程背景的關係人、或核准發生在 repo 之外**:留著 PRD —— 那些讀者正是它存在的理由。
+> 但仍然讓 acceptance 當權威,PRD 當敘述,**永遠不要讓驗收者對照一份你的凍結管不到的檔案**。
+
 同一步也要把 feature 之間的相依寫進 `prerequisites`:哪些 feature 必須先 passing,這條才做得下去或驗證得了。沒有相依就填空陣列,不要留空 —— 沒申報的欄位要當成「未申報」處理,不能拿來判斷能不能平行(見 [architecture.md](architecture.md))。
 
 **凍結**:acceptance 由需求方簽核後,動工中實作者不得偷改。發現缺漏 → 新增條目、標 failing、回簽核,不動既有條目。

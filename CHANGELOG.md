@@ -2,6 +2,10 @@
 
 本專案版本紀錄。格式:新的在上。
 
+## v1.3（2026-08-18）
+
+- `setup-guide`（zh/en）：新增「規格放哪」的取捨說明。PRD 加一行指過去的 acceptance＝同一份規格存在兩個檔案，兩份會漂移；指定誰為準時要再問「哪一份比較難被偷偷改」——凍結若只保護 `feature_list.json`，「以 PRD 為準」就是把權威交給沒有保護的那一份，而且要到驗收才發現不一致。單人專案建議讓 acceptance 自足並在 passing 後歸檔；有團隊或非工程讀者時保留 PRD，但權威仍歸 acceptance。**`templates/PRD.md` 保留不動**——上游 harness 移除 PRD 層的理由建立在「只有一個人讀 feature_list」這個前提上，那不是這套 kit 的預設情境。
+
 ## v1.2（2026-08-11）
 
 - `README`／`setup-guide`／`architecture`（zh/en）：**L3 的升級條件改為事故觸發**——同型錯誤重複發生、bug 無法從既有 log 定位、邊界違規曾實際發生、或進入 `strict` 風險面。原本的「功能數 > 5」不再是理由;沒有證明價值的 L3 組件應在收官 retro 中移除。來源是上游 harness 的實測:完整 harness 沒有穩定提高任務通過率,卻顯著增加 token 與延遲成本。
