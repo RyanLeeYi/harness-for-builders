@@ -25,9 +25,11 @@ Before adding anything, ask: **does the agent need to read this every session?**
 
 ---
 
-## 2. Archive `feature_list.json` Regularly
+## 2. Archive `feature_list.json` at Wrap-Up
 
-When passing entries exceed 10, move them to `feature_archive.json` (same format); the main file keeps only failing + the 3 most recently completed.
+At every wrap-up, check for newly passing entries and move each one **whole** into `feature_archive.json` (same format). Don't batch them up. The main file keeps only failing.
+
+Don't move just the acceptance text and leave the other fields behind as a skeleton. Fields like `touches` look like data your coupling or impact analysis needs, but that analysis only ever looks at work **not yet done** — completed entries contribute nothing to it. Before keeping a copy of anything, go read the source and confirm who actually consumes it: "it should be useful" and "it has a consumer" are different claims.
 
 Always write `evidence` as a pointer (test output file path, commit hash), never the full text — the full text lives in a file, the list holds only the pointer.
 
@@ -70,5 +72,5 @@ When context pressure hits, clear in this order:
 ## When to Do This
 
 - Prune `session-handoff.md` at every wrap-up.
-- Clear `feature_list.json` when passing hits 10 entries, or when the opening read feels slow.
+- At every wrap-up, check `feature_list.json` for newly passing entries and archive them on the spot. Don't batch.
 - Review the whole set once at wrap-up.

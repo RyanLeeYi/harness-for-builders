@@ -25,9 +25,11 @@
 
 ---
 
-## 2. `feature_list.json` 定期歸檔
+## 2. `feature_list.json` 收官時歸檔
 
-passing 條目 > 10 條時,搬去 `feature_archive.json`(同格式),主檔只留 failing + 最近完成的 3 條。
+每次收工檢查有沒有新的 passing 條目,有就**整條**搬去 `feature_archive.json`(同格式),不攢批。主檔只留 failing。
+
+不要只搬 acceptance、把其他欄位留成骨架。`touches` 這類欄位看起來像耦合／影響面分析要用的資料,但那類分析只算**還沒做**的條目,已完成的對它零貢獻。留著一份資料前,先去源碼確認誰在讀它 ——「它應該有用」與「它有 consumer」是兩件事。
 
 `evidence` 一律寫指標(測試輸出的檔案路徑、commit hash),不貼全文 —— 全文放檔案裡,list 只留指標。
 
@@ -70,5 +72,5 @@ context 壓力來的時候,依這個順序清:
 ## 什麼時候做
 
 - 每次收工順手清 `session-handoff.md`。
-- passing 累積到 10 條、或感覺開場讀檔變慢時,清 `feature_list.json`。
+- 每次收工檢查 `feature_list.json` 有沒有新的 passing 條目,有就當場歸檔,不攢批。
 - 收官時整批檢視一遍。
