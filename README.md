@@ -136,6 +136,23 @@ what they're *for*:
 | **Explorer** | Read-only search that would flood the main context | Needs four: the question, the scope, the evidence format, the stop condition |
 | **Checker** | Answer "is it done right" without the author's bias | Fed **only the frozen acceptance and the artifact** — never the development process or the author's reasoning. Independence comes from the fresh context, not from being a different model. One checker per axis; stacking a second same-model checker doubles cost and adds fake independence, because clones share the same misreadings |
 
+What goes *in* the dispatch is easier to get wrong than when to dispatch, and it
+fails quietly: **the worker usually isn't standing where you are.** An isolation
+worktree typically branches from the remote default branch, not from your HEAD —
+so a spec you just committed but haven't pushed is invisible to it, and your
+`git status` is clean, so nothing warns you. Put the spec text **directly in the
+dispatch prompt**, and say explicitly: "the copy in this prompt is the
+authoritative one — don't go looking for it in the feature list, and don't stop
+if you can't find it there." Without that last clause the worker follows your
+repo's entry rules, looks it up, doesn't find it, and correctly stops — and you
+paid for the whole round.
+
+When a worker reports "the file I'm seeing doesn't match what you told me,"
+**go verify its base before assuming it misread.** That one was bought on
+2026-08-19: two dispatches on the same feature burned, the main session
+disbelieved the worker both times, and only the second one surfaced the base
+being 8 commits behind local. Both reports had been right.
+
 Two things never leave the main session: diagnosing an unknown bug (trace,
 hypothesis, fix, and verification are one coupled path — splitting it into a
 pipeline loses the thread), and the final judgment on a checker's findings
