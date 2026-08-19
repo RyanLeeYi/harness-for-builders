@@ -2,6 +2,11 @@
 
 本專案版本紀錄。格式:新的在上。
 
+## v2.1（2026-08-19）
+
+- **委派判斷外包給 [baton](https://github.com/cablate/baton) dispatch brake**:README(zh/en)「角色與委派」的三條觸發清單改為五問煞車(Outcome／Direct-work／Independence／Ownership／Closure),本地只留不可外包清單與五問對應機制,不再維護第二份委派規則。
+- `claude-code/scripts/harness-plan.py` 同步:`load()` 合併 `docs/archive/features.jsonl`(hub 偵測與 prerequisites 檢查吃全體資料)、`--dsm` 新增**執行波次**(gsd-core 規則:wave = max(prereq)+1,同波 touches／requires 交集下推)、選填 `needs`／`creates` 推論時序邊(未宣告進 prerequisites 只警告不擋)、`--json` 多 `waves`／`wave_blocked`／`inferred_edges`／`undeclared_timing`。新增 `harness-plan-test.py`。
+
 ## v2.0（2026-08-18）
 
 - **新增車道 B:Claude Code 強制層安裝包**。`claude-code/` payload——3 支 hook(harness-trace 凍結保護與危險命令攔截、harness-gate 流程閘門、no-emoji-guard)含各自回歸測試(35+20+全數+16 條,已在 payload 上實跑全綠)、4 支角色檔(executor/Explore/acceptance-verifier/plan-verifier,驗收者自帶 verifier-bash-guard hook)、`/harness-init` skill(在任何 repo 建符合規格的最小 harness,骨架直建、acceptance 訪談)、settings hooks 片段(合併不覆寫)。`install/AGENT-INSTALL.md` 是 agent 執行的 runbook:盤點 → 合併計畫 → 使用者核准 → 寫入 → 跑測試＋故意觸發一次 DENY 驗證,含更新與 uninstall。安裝機制照 [pilotfish](https://github.com/Nanako0129/pilotfish) 的形態。

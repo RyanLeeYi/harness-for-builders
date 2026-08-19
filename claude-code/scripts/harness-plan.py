@@ -10,7 +10,9 @@
   harness-plan.py <repo_root> --dsm --json           結構化輸出
 
 資料來源是 feature_list.json 的 `touches`（涉及檔案）、`requires`（排他性資源）、
-`prerequisites`（必須先完成的 feature id）。
+`prerequisites`（必須先完成的 feature id），以及選填的 `needs`／`creates`（API 級契約名，
+例如 `api:auth-token`、`table:sessions`；A.needs 與 B.creates 交集 → A 排在 B 後，沒寫進
+prerequisites 就列為「未宣告的時序耦合」警告）。
 touches 空的條目一律略過並在報告裡列出——**沒有資料不等於沒有耦合**，不要當成「安全」。
 
 prerequisites 是**宣告**的順序，優先於耦合推論出的順序。它跟 touches 是不同的東西：
@@ -34,9 +36,24 @@ if hasattr(sys.stdout, "reconfigure"):
 HUB_RATIO = 0.5
 
 
+# 2026-08-19：passing 條目整條歸檔後，主檔只留 failing。但分析仍需要看到全體——
+# hub 偵測是跨全體統計比例（少了歷史條目，sw.js 這種檔案的比例掉到門檻下，
+# 於是不再被排除，任兩條都變成假重疊），prerequisites 存在性檢查也要比對全體 id
+# （指向已 passing 的前置會被誤報成「指向不存在的 F59」）。
+# 所以讀檔在這裡合併歸檔，agent 每個 session 讀的主檔仍然只有 failing。
+ARCHIVE = "docs/archive/features.jsonl"
+
+
 def load(repo_root: str) -> list[dict]:
     with open(f"{repo_root}/feature_list.json", encoding="utf-8") as f:
-        return json.load(f).get("features") or []
+        features = json.load(f).get("features") or []
+    try:
+        with open(f"{repo_root}/{ARCHIVE}", encoding="utf-8") as f:
+            archived = [json.loads(line) for line in f if line.strip()]
+    except FileNotFoundError:
+        return features
+    seen = {f.get("id") for f in features}
+    return features + [a for a in archived if a.get("id") not in seen]
 
 
 def hub_files(features: list[dict]) -> set[str]:
@@ -114,6 +131,86 @@ def layers(items: list[dict], all_ids: set[str]) -> list[list[str]]:
     return out
 
 
+def inferred_edges(items: list[dict]) -> dict[str, set[str]]:
+    """needs／creates 推論出的時序耦合（2026-08-19 抄 gsd-core needs/creates，Dimension 3b 精神）：
+    A.needs 與 B.creates 有交集 → A 要等 B。回傳 {A: {B, ...}}。
+
+    這是**推論**，不是宣告：waves() 會把它當 prerequisite 排，但報告只警告不擋——
+    「沒申報 prerequisites 卻有隱性時序」是規格要補的資料，不是工具替它斷言。
+    """
+    out: dict[str, set[str]] = {}
+    for a in items:
+        needs = set(a.get("needs") or [])
+        if not needs:
+            continue
+        for b in items:
+            if b is not a and needs & set(b.get("creates") or []):
+                out.setdefault(a["id"], set()).add(b["id"])
+    return out
+
+
+def undeclared_timing(items: list[dict]) -> list[str]:
+    """推論出 A 要等 B，但 A.prerequisites 沒寫 B → 未宣告的時序耦合（只警告）。"""
+    out = []
+    for a_id, bs in inferred_edges(items).items():
+        a = next(f for f in items if f["id"] == a_id)
+        declared_p = set(a.get("prerequisites") or [])
+        for b in sorted(bs - declared_p):
+            out.append(f"{a_id} needs 的東西由 {b} creates，但 {a_id} 的 prerequisites 沒寫 {b}")
+    return out
+
+
+def _place(fid, f, wave, prereqs, by_id, hubs):
+    w = 1 + max((wave[p] for p in prereqs), default=0)
+    while any(wave[o] == w and _conflict(f, by_id[o], hubs) for o in wave):
+        w += 1
+    wave[fid] = w
+
+
+def waves(order: list[list[str]], items: list[dict], hubs: set[str]) -> tuple[list[list[str]], list[str]]:
+    """gsd-core planner 的分層規則（2026-08-19 抄入）：wave = max(prerequisite waves) + 1，
+    同一 wave 內 touches／requires 有交集 → 後者下推一層，直到同 wave 零交集。
+
+    只排**同時**有 prerequisites 申報與 touches 資料的條目；prerequisite 是 failing 但沒排進
+    wave（資料不足）的條目列進 blocked，不猜它能排第幾波。回傳 (waves, blocked)。
+    """
+    by_id = {f["id"]: f for f in items}
+    wave: dict[str, int] = {}
+    blocked: list[str] = []
+    pending_ids = {fid for layer in order for fid in layer}
+    inferred = inferred_edges(items)
+
+    def prereqs_of(fid: str) -> list[str]:
+        f = by_id[fid]
+        ps = [p for p in (f.get("prerequisites") or []) if p in pending_ids]
+        # needs/creates 推論邊也當 prerequisite 排（報告另外警告它沒宣告）
+        ps += [p for p in sorted(inferred.get(fid, ())) if p in pending_ids and p not in ps]
+        return ps
+
+    for layer in order:
+        todo = [fid for fid in layer if fid in by_id]
+        # 推論邊可能指向同一拓樸層的條目，所以同層反覆掃到沒有進展為止
+        while todo:
+            ready = [fid for fid in todo if all(p in wave for p in prereqs_of(fid))]
+            if not ready:
+                blocked.extend(todo)
+                break
+            for fid in ready:
+                _place(fid, by_id[fid], wave, prereqs_of(fid), by_id, hubs)
+            todo = [fid for fid in todo if fid not in ready]
+    out: list[list[str]] = []
+    for fid, w in wave.items():
+        while len(out) < w:
+            out.append([])
+        out[w - 1].append(fid)
+    return out, blocked
+
+
+def _conflict(a: dict, b: dict, hubs: set[str]) -> bool:
+    ov = overlap(a, b, hubs)
+    return bool(ov["files"] or ov["resources"])
+
+
 def failing(features: list[dict]) -> list[dict]:
     return [f for f in features if f.get("status") != "passing"]
 
@@ -138,6 +235,9 @@ def cmd_check(features: list[dict], target_id: str) -> int:
 
     print(f"# 開 feature 前的重疊檢查 — {target_id} {target.get('name', '')}")
     print(f"\n（已排除 {len(hubs)} 個架構級 hub 檔案；它們讓任兩條都重疊，不具鑑別力）")
+    for t in undeclared_timing(failing(features)):
+        if t.startswith(f"{target_id} "):
+            print(f"\n⚠ {t}")
     if not findings:
         print("\n沒有與其他 failing 條目重疊。可以獨立進行。")
         return 0
@@ -198,6 +298,10 @@ def cmd_dsm(features: list[dict], as_json: bool) -> int:
                 "no_touches_data": no_data,
                 "prereq_problems": prereq_problems(features),
                 "order_layers": layers(all_failing, {f["id"] for f in features}),
+                "waves": waves(layers(all_failing, {f["id"] for f in features}), items, hubs)[0],
+                "wave_blocked": waves(layers(all_failing, {f["id"] for f in features}), items, hubs)[1],
+                "inferred_edges": {k: sorted(v) for k, v in inferred_edges(items).items()},
+                "undeclared_timing": undeclared_timing(items),
                 "circuits": circuits,
                 "pairs": [{"a": a, "b": b, **ov} for a, b, ov in pairs],
             },
@@ -255,15 +359,25 @@ def cmd_dsm(features: list[dict], as_json: bool) -> int:
         print(f"\n⚠ 沒有申報 prerequisites，未納入順序與平行判斷：{'、'.join(undeclared)}")
         print("  （沒有欄位不等於沒有依賴——下次動到這幾條時順手補）")
 
-    # 可平行＝三個條件同時成立。solo 只保證沒有耦合，還要看有沒有宣告的先後；
-    # 沒申報的一律不進這份清單——寧可少建議，也不要建議一個會撞車的平行。
+    timing = undeclared_timing(items)
+    if timing:
+        print("\n## ⚠ 未宣告的時序耦合（needs／creates 推論，只警告不擋）\n")
+        for line in timing:
+            print(f"- {line}")
+        print("\n波次排序已把這些當 prerequisite 處理；規格該補 prerequisites，不是靠工具猜。")
+
+    # 執行波次＝prerequisites 分層再用 touches／requires 交集下推（gsd-core 規則）。
+    # 沒申報 prerequisites 或沒 touches 的一律不排——寧可少建議，也不要建議一個會撞車的平行。
     if order:
-        parallel = sorted(set(order[0]) & set(solo))
-        if len(parallel) > 1:
-            print("\n## 現在可以平行的\n")
-            print("　".join(parallel))
-            print("\n三個條件都成立：不互為 prerequisites、touches 無交集、requires 無交集。"
+        wv, blocked = waves(order, items, hubs)
+        if wv:
+            print("\n## 執行波次（同一波零檔案／資源交集，可同時派）\n")
+            for i, w in enumerate(wv, 1):
+                print(f"wave {i}. {'　'.join(w)}")
+            print("\n規則：wave = max(prerequisite waves)+1；同波有 touches／requires 交集就把後者下推一波。"
                   "\n真的要平行時，每個會寫入的 agent 各自 `isolation: \"worktree\"`，收工前整合。")
+        if blocked:
+            print(f"\n⚠ 前置條目資料不足、未排波次：{'、'.join(blocked)}")
 
     print(
         "\n---\n價值提醒：這份分析的主要用途是**減少 feature 條數**，其次才是順序與平行。"

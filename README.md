@@ -122,10 +122,15 @@ tool-neutral — the same split applies whether your agent tool has subagents,
 multiple models, or just multiple chat windows.
 
 **Default: the main session does the work itself.** Delegation has a real cost
-(re-sending context, losing the thread), so delegate only when one of three
-things is true: the user asked for it, two or more truly independent tracks can
-run in parallel, or a search/batch job would eat massive context and its inputs
-and stop conditions are already pinned down.
+(re-sending context, losing the thread). Before dispatching, run the five-question
+dispatch brake from [baton](https://github.com/cablate/baton) — Outcome (can you
+state the deliverable and its observable done conditions?), Direct-work (would one
+agent finish faster or more reliably?), Independence (can each track progress
+without re-reading the same sources or waiting on another worker?), Ownership
+(does every file have exactly one owner?), Closure (who integrates, resolves
+contradictions, and runs final verification?). Any unclear answer means don't fan
+out. Don't maintain a second copy of that rule locally; keep only what baton lacks —
+the non-delegable list and how each question maps onto your own mechanisms.
 
 When you do split, there are only three kinds of worker, and they differ by
 what they're *for*:
